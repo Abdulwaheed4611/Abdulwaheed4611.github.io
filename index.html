@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WeatherPro - Beautiful Weather Forecast</title>
+  <meta name="description" content="Get accurate weather forecasts with beautiful design. Check current weather, hourly and 5-day forecasts for any location worldwide.">
+  <meta name="keywords" content="weather, forecast, temperature, weather app, meteorology, climate">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header Ad Space -->
+  <div class="ad-container ad-header">
+    <div class="ad-placeholder">
+      <i class="fas fa-ad"></i>
+      <span>Advertisement</span>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <i class="fas fa-cloud-sun"></i>
+        <h1>WeatherPro</h1>
+      </div>
+      <div class="weather-time" id="currentTime"></div>
+    </header>
+
+    <div class="search-container">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input id="cityInput" placeholder="Enter city name or location..." />
+        <button id="searchBtn">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      <button id="locBtn" class="location-btn">
+        <i class="fas fa-location-arrow"></i>
+        <span>Use My Location</span>
+      </button>
+    </div>
+
+    <!-- Sidebar Ad Space -->
+    <div class="ad-container ad-sidebar">
+      <div class="ad-placeholder">
+        <i class="fas fa-ad"></i>
+        <span>Advertisement</span>
+      </div>
+    </div>
+
+    <main class="main-content">
+      <div id="weatherDisplay" class="weather-display">
+        <div class="welcome-message">
+          <i class="fas fa-cloud-sun weather-icon-large"></i>
+          <h2>Welcome to WeatherPro</h2>
+          <p>Search for a city or use your location to get started</p>
+        </div>
+      </div>
+
+      <!-- Content Ad Space -->
+      <div class="ad-container ad-content">
+        <div class="ad-placeholder">
+          <i class="fas fa-ad"></i>
+          <span>Advertisement</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Ad Space -->
+    <div class="ad-container ad-footer">
+      <div class="ad-placeholder">
+        <i class="fas fa-ad"></i>
+        <span>Advertisement</span>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <p>&copy; 2025 WeatherPro. Accurate weather forecasts worldwide.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
