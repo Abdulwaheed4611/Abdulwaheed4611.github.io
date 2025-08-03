@@ -1,9 +1,10 @@
-// Enhanced Weather App with Beautiful UI
+// Enhanced Weather App with Beautiful UI + Location Suggestions
 const cityInput = document.getElementById('cityInput');
 const searchBtn = document.getElementById('searchBtn');
 const locBtn = document.getElementById('locBtn');
 const weatherDisplay = document.getElementById('weatherDisplay');
 const currentTimeElement = document.getElementById('currentTime');
+const suggestionsBox = document.getElementById('suggestions');
 
 // Weather condition mappings
 const weatherCodes = {
@@ -53,7 +54,7 @@ function getBeaufortScale(windSpeed) {
     { min: 89, max: 102, desc: 'Violent storm', icon: '🌪️' },
     { min: 103, max: 200, desc: 'Hurricane', icon: '🌪️' }
   ];
-  
+
   for (const scale of scales) {
     if (windSpeed >= scale.min && windSpeed <= scale.max) {
       return scale;
@@ -65,10 +66,10 @@ function getBeaufortScale(windSpeed) {
 // Update current time
 function updateCurrentTime() {
   const now = new Date();
-  const options = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
+  const options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
@@ -76,7 +77,6 @@ function updateCurrentTime() {
   currentTimeElement.textContent = now.toLocaleDateString('en-US', options);
 }
 
-// Initialize time and update every minute
 updateCurrentTime();
 setInterval(updateCurrentTime, 60000);
 
@@ -86,19 +86,19 @@ async function fetchWeatherByCity(city) {
     alert('Please enter a city name');
     return;
   }
-  
+
   try {
     const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
     const geoData = await geoResponse.json();
-    
+
     if (!geoData.results || geoData.results.length === 0) {
       alert('City not found. Please check the spelling and try again.');
       return;
     }
-    
+
     const { latitude, longitude, name, country, admin1 } = geoData.results[0];
     const locationLabel = admin1 ? `${name}, ${admin1}, ${country}` : `${name}, ${country}`;
-    
+
     await fetchWeather(latitude, longitude, locationLabel);
   } catch (error) {
     console.error('Error fetching city data:', error);
@@ -109,17 +109,17 @@ async function fetchWeatherByCity(city) {
 // Fetch weather data
 async function fetchWeather(lat, lon, locationLabel = 'Your Location') {
   weatherDisplay.innerHTML = '<div class="loading">Loading weather data...</div>';
-  
+
   const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode,precipitation_probability,windspeed_10m,relative_humidity_2m,visibility,uv_index&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max,windspeed_10m_max,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=5`;
-  
+
   try {
     const response = await fetch(apiUrl);
     const data = await response.json();
-    
+
     if (data.error) {
       throw new Error(data.reason || 'Failed to fetch weather data');
     }
-    
+
     displayWeather(data, locationLabel);
   } catch (error) {
     console.error('Error fetching weather data:', error);
@@ -138,20 +138,17 @@ function displayWeather(data, locationLabel) {
   const current = data.current_weather;
   const hourly = data.hourly;
   const daily = data.daily;
-  
+
   const weatherInfo = weatherCodes[current.weathercode] || { desc: 'Unknown', icon: '❓' };
   const windInfo = getBeaufortScale(current.windspeed);
-  
-  // Current weather display
   const currentHour = new Date().getHours();
   const currentHumidity = hourly.relative_humidity_2m[currentHour] || 'N/A';
   const currentVisibility = hourly.visibility[currentHour] || 'N/A';
   const currentUV = hourly.uv_index[currentHour] || 'N/A';
-  
-  // Sunrise and sunset times
+
   const sunrise = new Date(daily.sunrise[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const sunset = new Date(daily.sunset[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  
+
   weatherDisplay.innerHTML = `
     <div class="weather-card">
       <div class="weather-header">
@@ -160,26 +157,22 @@ function displayWeather(data, locationLabel) {
           <p>Last updated: ${new Date(current.time).toLocaleTimeString()}</p>
         </div>
       </div>
-
       <div class="weather-main">
-        <img src="https://open-meteo.com/images/weathericons/${current.weathercode}.svg" 
-             alt="${weatherInfo.desc}" 
+        <img src="https://open-meteo.com/images/weathericons/${current.weathercode}.svg"
+             alt="${weatherInfo.desc}"
              class="weather-icon"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <span class="weather-icon" style="display:none; font-size: 80px;">${weatherInfo.icon}</span>
-        
         <div class="weather-temp">
           <div class="temperature">${Math.round(current.temperature)}°C</div>
           <div class="feels-like">Feels like ${Math.round(current.temperature)}°C</div>
           <div class="weather-desc">${weatherInfo.desc}</div>
         </div>
       </div>
-
       <div class="weather-summary">
         <i class="fas fa-info-circle"></i>
         Currently ${weatherInfo.desc.toLowerCase()} with ${windInfo.desc.toLowerCase()} winds at ${current.windspeed} km/h
       </div>
-
       <div class="weather-details">
         <div class="detail-item">
           <i class="fas fa-tint detail-icon" style="color: #06B6D4;"></i>
@@ -188,7 +181,6 @@ function displayWeather(data, locationLabel) {
             <div class="detail-value">${currentHumidity}${currentHumidity !== 'N/A' ? '%' : ''}</div>
           </div>
         </div>
-        
         <div class="detail-item">
           <i class="fas fa-wind detail-icon" style="color: #8B5CF6;"></i>
           <div class="detail-content">
@@ -196,15 +188,13 @@ function displayWeather(data, locationLabel) {
             <div class="detail-value">${current.windspeed} km/h</div>
           </div>
         </div>
-        
         <div class="detail-item">
           <i class="fas fa-eye detail-icon" style="color: #10B981;"></i>
           <div class="detail-content">
             <div class="detail-label">Visibility</div>
-            <div class="detail-value">${currentVisibility !== 'N/A' ? Math.round(currentVisibility/1000) + ' km' : 'N/A'}</div>
+            <div class="detail-value">${currentVisibility !== 'N/A' ? Math.round(currentVisibility / 1000) + ' km' : 'N/A'}</div>
           </div>
         </div>
-        
         <div class="detail-item">
           <i class="fas fa-sun detail-icon" style="color: #F59E0B;"></i>
           <div class="detail-content">
@@ -212,7 +202,6 @@ function displayWeather(data, locationLabel) {
             <div class="detail-value">${currentUV !== 'N/A' ? Math.round(currentUV) : 'N/A'}</div>
           </div>
         </div>
-        
         <div class="detail-item">
           <i class="fas fa-sunrise detail-icon" style="color: #EF4444;"></i>
           <div class="detail-content">
@@ -220,7 +209,6 @@ function displayWeather(data, locationLabel) {
             <div class="detail-value">${sunrise}</div>
           </div>
         </div>
-        
         <div class="detail-item">
           <i class="fas fa-sunset detail-icon" style="color: #F59E0B;"></i>
           <div class="detail-content">
@@ -229,22 +217,14 @@ function displayWeather(data, locationLabel) {
           </div>
         </div>
       </div>
-
       <div class="forecast-section">
-        <h3 class="forecast-title">
-          <i class="fas fa-clock"></i>
-          24-Hour Forecast
-        </h3>
+        <h3 class="forecast-title"><i class="fas fa-clock"></i> 24-Hour Forecast</h3>
         <div class="forecast-container">
           ${generateHourlyForecast(hourly)}
         </div>
       </div>
-
       <div class="forecast-section">
-        <h3 class="forecast-title">
-          <i class="fas fa-calendar-alt"></i>
-          5-Day Forecast
-        </h3>
+        <h3 class="forecast-title"><i class="fas fa-calendar-alt"></i> 5-Day Forecast</h3>
         <div class="forecast-container">
           ${generateDailyForecast(daily)}
         </div>
@@ -262,23 +242,19 @@ function generateHourlyForecast(hourly) {
     const temp = Math.round(hourly.temperature_2m[index]);
     const precipChance = hourly.precipitation_probability[index] || 0;
     const windSpeed = Math.round(hourly.windspeed_10m[index]);
-    
+
     return `
       <div class="forecast-item">
         <div class="forecast-time">${date.getHours()}:00</div>
-        <img src="https://open-meteo.com/images/weathericons/${hourly.weathercode[index]}.svg" 
-             alt="${weatherInfo.desc}" 
+        <img src="https://open-meteo.com/images/weathericons/${hourly.weathercode[index]}.svg"
+             alt="${weatherInfo.desc}"
              class="forecast-icon"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <span class="forecast-icon" style="display:none; font-size: 32px;">${weatherInfo.icon}</span>
         <div class="forecast-temp">${temp}°C</div>
         <div class="forecast-details">
-          <div class="forecast-rain">
-            <i class="fas fa-umbrella"></i> ${precipChance}%
-          </div>
-          <div class="forecast-wind">
-            <i class="fas fa-wind"></i> ${windSpeed} km/h
-          </div>
+          <div class="forecast-rain"><i class="fas fa-umbrella"></i> ${precipChance}%</div>
+          <div class="forecast-wind"><i class="fas fa-wind"></i> ${windSpeed} km/h</div>
         </div>
       </div>
     `;
@@ -294,14 +270,14 @@ function generateDailyForecast(daily) {
     const tempMin = Math.round(daily.temperature_2m_min[index]);
     const precipChance = daily.precipitation_probability_max[index] || 0;
     const windSpeed = Math.round(daily.windspeed_10m_max[index]);
-    
+
     const dayName = index === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
-    
+
     return `
       <div class="daily-forecast-item">
         <div class="forecast-day">${dayName}</div>
-        <img src="https://open-meteo.com/images/weathericons/${daily.weathercode[index]}.svg" 
-             alt="${weatherInfo.desc}" 
+        <img src="https://open-meteo.com/images/weathericons/${daily.weathercode[index]}.svg"
+             alt="${weatherInfo.desc}"
              class="forecast-icon"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <span class="forecast-icon" style="display:none; font-size: 32px;">${weatherInfo.icon}</span>
@@ -310,32 +286,71 @@ function generateDailyForecast(daily) {
           <span class="temp-low">${tempMin}°</span>
         </div>
         <div class="forecast-details">
-          <div class="forecast-rain">
-            <i class="fas fa-umbrella"></i> ${precipChance}%
-          </div>
-          <div class="forecast-wind">
-            <i class="fas fa-wind"></i> ${windSpeed} km/h
-          </div>
+          <div class="forecast-rain"><i class="fas fa-umbrella"></i> ${precipChance}%</div>
+          <div class="forecast-wind"><i class="fas fa-wind"></i> ${windSpeed} km/h</div>
         </div>
       </div>
     `;
   }).join('');
 }
 
-// Event listeners
+// Event Listeners
 searchBtn.addEventListener('click', () => {
   const city = cityInput.value.trim();
-  if (city) {
-    fetchWeatherByCity(city);
-  }
+  if (city) fetchWeatherByCity(city);
 });
 
 cityInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     const city = cityInput.value.trim();
-    if (city) {
-      fetchWeatherByCity(city);
+    if (city) fetchWeatherByCity(city);
+  }
+});
+
+// Location suggestion logic
+let debounceTimer;
+cityInput.addEventListener('input', () => {
+  const query = cityInput.value.trim();
+  clearTimeout(debounceTimer);
+  if (query.length < 2) {
+    suggestionsBox.innerHTML = '';
+    return;
+  }
+
+  debounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5`);
+      const data = await res.json();
+
+      if (!data.results) {
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+
+      suggestionsBox.innerHTML = data.results.map(loc => {
+        const label = loc.admin1 ? `${loc.name}, ${loc.admin1}, ${loc.country}` : `${loc.name}, ${loc.country}`;
+        return `<div data-lat="${loc.latitude}" data-lon="${loc.longitude}" data-label="${label}">${label}</div>`;
+      }).join('');
+    } catch (err) {
+      console.error('Autocomplete error:', err);
     }
+  }, 300);
+});
+
+suggestionsBox.addEventListener('click', (e) => {
+  if (e.target.tagName === 'DIV') {
+    const lat = e.target.getAttribute('data-lat');
+    const lon = e.target.getAttribute('data-lon');
+    const label = e.target.getAttribute('data-label');
+    cityInput.value = label;
+    suggestionsBox.innerHTML = '';
+    fetchWeather(parseFloat(lat), parseFloat(lon), label);
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!suggestionsBox.contains(e.target) && e.target !== cityInput) {
+    suggestionsBox.innerHTML = '';
   }
 });
 
@@ -356,18 +371,15 @@ locBtn.addEventListener('click', () => {
   }
 });
 
-// Initialize with a default city or user location
 document.addEventListener('DOMContentLoaded', () => {
-  // Try to get user's location on page load
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         fetchWeather(latitude, longitude);
       },
-      () => {
-        // If geolocation fails, show welcome message
-        console.log('Geolocation not available, showing welcome message');
+      (error) => {
+        console.warn('Geolocation error:', error.message);
       }
     );
   }
