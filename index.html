@@ -31,10 +31,11 @@
     <div class="search-container">
       <div class="search-box">
         <i class="fas fa-search"></i>
-        <input id="cityInput" placeholder="Enter city name or location..." />
+        <input id="cityInput" placeholder="Enter city name or location..." autocomplete="off" />
         <button id="searchBtn">
           <i class="fas fa-search"></i>
         </button>
+        <div id="suggestions" class="suggestions-container"></div>
       </div>
       <button id="locBtn" class="location-btn">
         <i class="fas fa-location-arrow"></i>
