@@ -4,6 +4,81 @@ const searchBtn = document.getElementById('searchBtn');
 const locBtn = document.getElementById('locBtn');
 const weatherDisplay = document.getElementById('weatherDisplay');
 const currentTimeElement = document.getElementById('currentTime');
+const suggestionsContainer = document.getElementById('suggestions');
+
+// Debounce function to limit API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Function to fetch place suggestions
+async function fetchPlaceSuggestions(query) {
+    if (!query.trim()) {
+        suggestionsContainer.innerHTML = '';
+        suggestionsContainer.classList.remove('active');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
+        const data = await response.json();
+
+        if (data.results && data.results.length > 0) {
+            suggestionsContainer.innerHTML = '';
+            data.results.forEach(place => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerHTML = `
+                    <div class="location-name">${place.name}</div>
+                    <div class="location-details">${place.admin1 ? `${place.admin1}, ` : ''}${place.country}</div>
+                `;
+                div.addEventListener('click', () => {
+                    cityInput.value = place.name;
+                    suggestionsContainer.innerHTML = '';
+                    suggestionsContainer.classList.remove('active');
+                    fetchWeatherByCity(place.name);
+                });
+                suggestionsContainer.appendChild(div);
+            });
+            suggestionsContainer.classList.add('active');
+        } else {
+            suggestionsContainer.innerHTML = `
+                <div class="suggestion-item">
+                    <div class="location-name">No results found</div>
+                </div>
+            `;
+            suggestionsContainer.classList.add('active');
+        }
+    } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        suggestionsContainer.innerHTML = `
+            <div class="suggestion-item">
+                <div class="location-name">Error fetching suggestions</div>
+            </div>
+        `;
+        suggestionsContainer.classList.add('active');
+    }
+}
+
+// Add input event listener with debounce
+cityInput.addEventListener('input', debounce((e) => {
+    fetchPlaceSuggestions(e.target.value);
+}, 300));
+
+// Close suggestions when clicking outside
+document.addEventListener('click', (e) => {
+    if (!cityInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+        suggestionsContainer.classList.remove('active');
+    }
+});
 
 // Weather condition mappings
 const weatherCodes = {
